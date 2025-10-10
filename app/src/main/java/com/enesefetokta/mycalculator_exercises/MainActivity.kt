@@ -1,5 +1,6 @@
 package com.enesefetokta.mycalculator_exercises
 
+import android.R
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -45,18 +46,42 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun CalculatorApp() {
-    var displayText by remember { mutableStateOf("") }
+    var displayText by remember { mutableStateOf("0") }
+    var number1 by remember { mutableStateOf<String?>(null) }
+    var operation by remember { mutableStateOf<String?>(null) }
 
     val onButtonClick: (String) -> Unit = { buttonText ->
         when (buttonText) {
             "C" -> {
                 displayText = "0"
+                number1 = null
+                operation = null
             }
-
-            else -> {
-                if (displayText == "0") {
+            "=" -> {
+                val num1 = number1?.toDoubleOrNull()
+                val num2 = displayText.toDoubleOrNull()
+                if (num1 != null && num2 != null && operation != null) {
+                    val result = when (operation) {
+                        "+" -> num1 + num2
+                        "-" -> num1 - num2
+                        "*" -> num1 * num2
+                        "/" -> if (num2 != 0.0) num1 / num2 else "Hata"
+                        else -> 0.0
+                    }
+                    displayText = result.toString()
+                    number1 = null
+                    operation = null
+                }
+            }
+            "+", "-", "*", "/" -> {
+                number1 = displayText
+                operation = buttonText
+                displayText = "0"
+            }
+            else -> { // Sayı butonları (0-9, .)
+                if (displayText == "0" || operation != null && number1 != null && displayText == number1) {
                     displayText = buttonText
-                } else {
+                } else if (displayText.length < 12) {
                     displayText += buttonText
                 }
             }
@@ -67,7 +92,7 @@ fun CalculatorApp() {
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Bottom
     ) {
         Box(
             modifier = Modifier
@@ -90,10 +115,9 @@ fun CalculatorApp() {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                CalculatorButton(text = "AC", modifier = Modifier.weight(1f), onClick = onButtonClick)
-                CalculatorButton(text = "C", modifier = Modifier.weight(1f), onClick = onButtonClick)
+                CalculatorButton(text = "C", modifier = Modifier.weight(2f), onClick = onButtonClick)
                 CalculatorButton(text = "/", modifier = Modifier.weight(1f), onClick = onButtonClick)
-                CalculatorButton(text = "X", modifier = Modifier.weight(1f), onClick = onButtonClick)
+                CalculatorButton(text = "*", modifier = Modifier.weight(1f), onClick = onButtonClick)
             }
 
             Row(
@@ -130,19 +154,11 @@ fun CalculatorApp() {
                         CalculatorButton(text = "3", modifier = Modifier.weight(1f), onClick = onButtonClick)
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        CalculatorButton(
-                            text = "0",
-                            modifier = Modifier.weight(2f)
-                        )
+                        CalculatorButton(text = "0", modifier = Modifier.weight(2f), onClick = onButtonClick)
                         CalculatorButton(text = ".", modifier = Modifier.weight(1f), onClick = onButtonClick)
                     }
                 }
-
-                CalculatorButton(
-                    text = "=",
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
-                    onClick = onButtonClick
-                )
+                CalculatorButton(text = "=", modifier = Modifier.weight(1f).fillMaxWidth(), onClick = onButtonClick)
             }
         }
     }
@@ -152,16 +168,13 @@ fun CalculatorApp() {
 fun CalculatorButton(
     text: String,
     modifier: Modifier = Modifier,
-    onClick: (String) -> Unit = {}
+    onClick: (String) -> Unit
 ) {
     Button(
         onClick = { onClick(text) },
-        modifier = modifier.height(80.dp),
+        modifier = modifier.height(80.dp)
     ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.displayMedium
-        )
+        Text(text = text, style = MaterialTheme.typography.headlineMedium)
     }
 }
 
